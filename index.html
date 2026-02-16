@@ -29,6 +29,7 @@ body {
   font-family: 'Fredoka', 'Noto Sans SC', sans-serif;
   overflow: hidden;
   height: 100vh;
+  height: 100dvh;
   width: 100vw;
   background: var(--sky);
   touch-action: manipulation;
@@ -262,71 +263,166 @@ body {
   z-index: 10;
   width: 100%;
   height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: 10px 15px;
+  padding: calc(10px + env(safe-area-inset-top)) 15px calc(10px + env(safe-area-inset-bottom));
+  overflow: hidden;
+}
+
+/* App-like main area: scrolls, title stays visible */
+.game-main {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.game-col-left,
+.game-col-right {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+@media (orientation: portrait) {
+  .game-main {
+    justify-content: center;
+  }
+}
+
+@media (orientation: landscape) {
+  .game-main {
+    width: min(980px, 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 6px 0;
+  }
+  .game-col-left,
+  .game-col-right {
+    align-items: center;
+  }
+
+  /* Push main play area (slots/candidates) down */
+  .game-col-right {
+    margin-top: auto;
+    width: 100%;
+  }
+  .game-col-left {
+    flex: 1;
+    min-height: 0;
+    justify-content: center;
+    width: 100%;
+  }
 }
 
 /* Title */
 .game-title {
-  font-size: clamp(44px, 4vw, 72px);
+  font-size: clamp(28px, 3vw, 44px);
   font-weight: 700;
   color: #fff;
-  text-shadow: 3px 3px 0 #E91E63, -1px -1px 0 #E91E63, 1px -1px 0 #E91E63, -1px 1px 0 #E91E63;
+  text-shadow: 2px 2px 0 #E91E63, -1px -1px 0 #E91E63, 1px -1px 0 #E91E63, -1px 1px 0 #E91E63;
   margin-bottom: 5px;
-  letter-spacing: 4px;
+  letter-spacing: 2px;
   animation: bounce-title 2s ease-in-out infinite;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 10px;
-  width: clamp(360px, 80vw, 570px);
+  gap: 6px;
+  width: clamp(320px, 95vw, 650px);
   background: linear-gradient(135deg, rgba(255,107,157,0.85), rgba(233,30,99,0.85));
-  padding: 12px 25px;
-  border-radius: 20px;
-  border: 4px solid #fff;
-  box-shadow: 0 6px 20px rgba(233,30,99,0.4), inset 0 2px 4px rgba(255,255,255,0.3);
+  padding: 6px 12px;
+  border-radius: 18px;
+  border: 3px solid #fff;
+  box-shadow: 0 4px 15px rgba(233,30,99,0.4), inset 0 2px 4px rgba(255,255,255,0.3);
+}
+.title-left, .title-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.title-center {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 .title-icon {
-  width: clamp(40px, 8vw, 60px);
+  width: clamp(26px, 5vw, 40px);
   height: auto;
 }
+.title-number {
+  font-size: clamp(28px, 3vw, 44px);
+}
+.title-score {
+  font-size: clamp(11px, 1.5vw, 14px);
+  background: rgba(255,255,255,0.25);
+  padding: 2px 6px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+.title-diff {
+  font-size: clamp(10px, 1.4vw, 13px);
+  background: rgba(255,255,255,0.25);
+  padding: 2px 6px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+}
+.title-diff.active {
+  background: #fff;
+  color: #E91E63;
+  border-color: #fff;
+}
+/* Mode buttons inside title */
+.title-mode {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.25);
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+}
+.title-mode.active {
+  background: #fff;
+  border-color: #fff;
+}
+.title-mode .mc {
+  border-radius: 50%;
+  background: #fff;
+}
+.title-mode.active .mc {
+  background: #E91E63;
+}
+.title-mode .mc.b { width: 12px; height: 12px; }
+.title-mode .mc.m { width: 9px; height: 9px; }
+.title-mode .mc.s { width: 6px; height: 6px; }
 @keyframes bounce-title {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+  50% { transform: translateY(-2px); }
 }
 
-/* Mode & Difficulty selectors */
-.controls-row {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-.control-btn {
-  padding: 6px 16px;
-  border: 3px solid #fff;
-  border-radius: 25px;
-  background: rgba(255,255,255,0.3);
-  color: #fff;
-  font-family: inherit;
-  font-size: clamp(12px, 2vw, 16px);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  backdrop-filter: blur(5px);
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-}
-.control-btn.active {
-  background: #E91E63;
-  border-color: #E91E63;
-  transform: scale(1.05);
-  box-shadow: 0 4px 15px rgba(233,30,99,0.4);
-}
-.control-btn:hover { transform: scale(1.05); }
+/* Mode buttons - hidden, using title-mode instead */
+.mode-row { display: none; }
+.mode-btn { display: none; }
+.mode-circle { display: none; }
+.score-section { display: none; }
 
 /* Spinner area */
 .spinner-section {
@@ -387,36 +483,18 @@ body {
   animation: wiggle 0.3s ease-in-out infinite;
   pointer-events: none;
 }
+.play-icon {
+  font-size: 32px;
+}
 @keyframes wiggle {
   0%, 100% { transform: rotate(0); }
   25% { transform: rotate(-5deg); }
   75% { transform: rotate(5deg); }
 }
 
-/* Direction indicator */
+/* Direction indicator - hidden since mode buttons show direction */
 .direction-indicator {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
-  padding: 6px 20px;
-  background: rgba(255,255,255,0.85);
-  border-radius: 30px;
-  border: 3px solid #1565C0;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-.dir-circle {
-  width: 30px; height: 30px;
-  border-radius: 50%;
-  background: #2196F3;
-  transition: all 0.3s;
-}
-.dir-circle.big { width: 40px; height: 40px; }
-.dir-circle.small { width: 20px; height: 20px; }
-.dir-arrow {
-  font-size: 28px;
-  color: #1565C0;
-  font-weight: 700;
+  display: none;
 }
 
 /* Carousel horses */
@@ -707,6 +785,40 @@ body {
   .spin-btn { width: 85px; height: 85px; font-size: 16px; }
 }
 
+/* Tablet landscape (e.g., iPad Air 横屏) */
+@media (orientation: landscape) and (min-width: 1024px) {
+  .game-title {
+    width: min(1180px, 96vw);
+  }
+  .game-main {
+    width: min(1180px, 96vw);
+    gap: 14px;
+  }
+
+  .spinner-box { width: 110px; height: 120px; }
+  .spinner-num { height: 120px; font-size: 66px; }
+  .spin-btn { width: 92px; height: 92px; }
+  .play-icon { font-size: 38px; }
+
+  .carousel-bar { height: 100px; }
+  .horse { font-size: clamp(34px, 4.5vw, 54px); }
+  .horse-pole { height: 30px; }
+
+  .slots-section { max-width: 720px; }
+  .slot {
+    width: clamp(60px, 5.5vw, 95px);
+    height: clamp(68px, 6vw, 105px);
+    font-size: clamp(28px, 3.2vw, 44px);
+  }
+  .candidates-section { max-width: 720px; }
+  .candidate {
+    width: clamp(52px, 4.8vw, 78px);
+    height: clamp(52px, 4.8vw, 78px);
+    font-size: clamp(24px, 3vw, 40px);
+  }
+  .feedback { font-size: clamp(16px, 2.2vw, 22px); }
+}
+
 @media (max-height: 700px) {
   .carousel-bar { height: 60px; }
   .horse { font-size: 28px !important; }
@@ -756,47 +868,49 @@ body {
 <!-- GAME UI -->
 <div class="game-container">
   <div class="game-title">
-    <img src="happy-boy.png" alt="happy-boy" class="title-icon"> 
-    6
-  </div>
-  
-  <div class="score-section">
-    <div class="score-item">⭐ 得分: <span id="score">0</span></div>
-    <div class="score-item">🎯 连对: <span id="streak">0</span></div>
-  </div>
-
-  <div class="controls-row">
-    <button class="control-btn active" data-mode="desc" onclick="setMode('desc')">从大到小 ↘</button>
-    <button class="control-btn" data-mode="asc" onclick="setMode('asc')">从小到大 ↗</button>
-    <button class="control-btn active" data-diff="easy" onclick="setDifficulty('easy')">简单 ⭐</button>
-    <button class="control-btn" data-diff="hard" onclick="setDifficulty('hard')">困难 ⭐⭐</button>
-  </div>
-
-  <div class="spinner-section">
-    <div class="spinner-box">
-      <div class="spinner-track" id="spinnerTrack"></div>
+    <div class="title-left">
+      <img src="happy-boy.png" alt="happy-boy" class="title-icon">
+      <span class="title-number">6</span>
     </div>
-    <button class="spin-btn" id="spinBtn" onclick="startSpin()">
-      <span>🎰</span>
-      <span>转!</span>
-    </button>
+    <div class="title-center">
+      <span class="title-mode active" data-mode="desc" onclick="setMode('desc')" title="从大到小">
+        <span class="mc b"></span><span class="mc m"></span><span class="mc s"></span>
+      </span>
+      <span class="title-mode" data-mode="asc" onclick="setMode('asc')" title="从小到大">
+        <span class="mc s"></span><span class="mc m"></span><span class="mc b"></span>
+      </span>
+      <span class="title-score">⭐<span id="score">0</span></span>
+      <span class="title-score">🎯<span id="streak">0</span></span>
+    </div>
+    <div class="title-right">
+      <span class="title-diff active" data-diff="easy" onclick="setDifficulty('easy')">简单</span>
+      <span class="title-diff" data-diff="hard" onclick="setDifficulty('hard')">困难</span>
+    </div>
   </div>
 
-  <div class="direction-indicator">
-    <div class="dir-circle" id="dirBig"></div>
-    <div class="dir-arrow" id="dirArrow">➡</div>
-    <div class="dir-circle" id="dirSmall"></div>
+  <div class="game-main">
+    <div class="game-col-left">
+      <div class="spinner-section">
+        <div class="spinner-box">
+          <div class="spinner-track" id="spinnerTrack"></div>
+        </div>
+        <button class="spin-btn" id="spinBtn" onclick="startSpin()">
+          <span class="play-icon">▶</span>
+        </button>
+      </div>
+
+      <div class="direction-indicator"></div>
+    </div>
+
+    <div class="game-col-right">
+      <div class="carousel-section">
+        <div class="carousel-bar" id="carouselBar"></div>
+      </div>
+      <div class="slots-section" id="slotsSection"></div>
+      <div class="candidates-section" id="candidatesSection"></div>
+      <div class="feedback" id="feedback"></div>
+    </div>
   </div>
-
-  <div class="carousel-section">
-    <div class="carousel-bar" id="carouselBar"></div>
-  </div>
-
-  <div class="slots-section" id="slotsSection"></div>
-
-  <div class="candidates-section" id="candidatesSection"></div>
-
-  <div class="feedback" id="feedback"></div>
 </div>
 
 <!-- Celebration overlay -->
@@ -853,15 +967,7 @@ function setDifficulty(d) {
 }
 
 function updateDirection() {
-  const big = document.getElementById('dirBig');
-  const small = document.getElementById('dirSmall');
-  if (mode === 'desc') {
-    big.classList.add('big'); big.classList.remove('small');
-    small.classList.add('small'); small.classList.remove('big');
-  } else {
-    big.classList.add('small'); big.classList.remove('big');
-    small.classList.add('big'); small.classList.remove('small');
-  }
+  // Direction indicator hidden - mode shown in title-mode buttons
 }
 
 // ====== CAROUSEL HORSES ======
