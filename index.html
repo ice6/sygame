@@ -381,11 +381,13 @@ body {
   cursor: pointer;
   border: 2px solid transparent;
   transition: all 0.2s;
+  text-shadow: none;
 }
 .title-diff.active {
   background: #fff;
   color: #E91E63;
   border-color: #fff;
+  text-shadow: none;
 }
 /* Mode buttons inside title */
 .title-mode {
@@ -409,6 +411,17 @@ body {
 }
 .title-mode.active .mc {
   background: #E91E63;
+}
+.title-mode .mode-label {
+  font-size: clamp(10px, 1.4vw, 12px);
+  font-weight: 800;
+  color: #fff;
+  text-shadow: none;
+  white-space: nowrap;
+  margin-left: 4px;
+}
+.title-mode.active .mode-label {
+  color: #E91E63;
 }
 .title-mode .mc.b { width: 12px; height: 12px; }
 .title-mode .mc.m { width: 9px; height: 9px; }
@@ -970,9 +983,11 @@ body {
     <div class="title-center">
       <span class="title-mode active" data-mode="desc" onclick="setMode('desc')" title="从大到小">
         <span class="mc b"></span><span class="mc m"></span><span class="mc s"></span>
+        <span class="mode-label">由大到小</span>
       </span>
       <span class="title-mode" data-mode="asc" onclick="setMode('asc')" title="从小到大">
         <span class="mc s"></span><span class="mc m"></span><span class="mc b"></span>
+        <span class="mode-label">由小到大</span>
       </span>
       <span class="title-score">⭐<span id="score">0</span></span>
       <span class="title-score">🎯<span id="streak">0</span></span>
