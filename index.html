@@ -328,6 +328,124 @@ body {
 }
 .control-btn:hover { transform: scale(1.05); }
 
+/* Game status row */
+.game-status-row {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 8px;
+  min-height: 30px;
+}
+
+.timer-section {
+  display: none;
+  align-items: center;
+  gap: 8px;
+}
+.timer-section.active { display: flex; }
+
+.timer-bar {
+  width: 120px;
+  height: 12px;
+  background: rgba(255,255,255,0.3);
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid #fff;
+}
+.timer-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #4CAF50, #8BC34A);
+  border-radius: 4px;
+  transition: width 0.1s linear;
+}
+.timer-fill.warning { background: linear-gradient(90deg, #FF9800, #FFC107); }
+.timer-fill.danger { background: linear-gradient(90deg, #F44336, #E91E63); animation: pulse-danger 0.5s ease-in-out infinite; }
+@keyframes pulse-danger {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+.timer-text {
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+  min-width: 35px;
+}
+
+.lives-section {
+  display: none;
+  gap: 4px;
+}
+.lives-section.active { display: flex; }
+.life-heart {
+  font-size: 24px;
+  transition: all 0.3s;
+}
+.life-heart.lost {
+  filter: grayscale(100%);
+  opacity: 0.4;
+  transform: scale(0.8);
+}
+
+/* Memory mode - hidden candidates */
+.candidate.hidden-memory {
+  background: linear-gradient(135deg, #9E9E9E, #757575);
+  border-color: #616161;
+  color: transparent;
+  position: relative;
+}
+.candidate.hidden-memory::after {
+  content: '?';
+  position: absolute;
+  color: #fff;
+  font-size: inherit;
+}
+
+/* Game over overlay */
+.game-over {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.5);
+}
+.game-over.show { display: flex; }
+.game-over-content {
+  text-align: center;
+  animation: celebrate-bounce 0.6s ease-out;
+}
+.game-over-emoji { font-size: 80px; }
+.game-over-text {
+  font-size: 32px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+  margin-top: 10px;
+}
+.game-over-sub {
+  font-size: 18px;
+  color: #FFCDD2;
+  margin-top: 8px;
+}
+.retry-btn {
+  margin-top: 20px;
+  padding: 12px 40px;
+  background: linear-gradient(135deg, #42A5F5, #1E88E5);
+  border: none;
+  border-radius: 30px;
+  color: white;
+  font-family: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(33,150,243,0.4);
+  transition: transform 0.2s;
+}
+.retry-btn:hover { transform: scale(1.1); }
+
 /* Spinner area */
 .spinner-section {
   display: flex;
@@ -768,8 +886,27 @@ body {
   <div class="controls-row">
     <button class="control-btn active" data-mode="desc" onclick="setMode('desc')">从大到小 ↘</button>
     <button class="control-btn" data-mode="asc" onclick="setMode('asc')">从小到大 ↗</button>
+  </div>
+  
+  <div class="controls-row">
     <button class="control-btn active" data-diff="easy" onclick="setDifficulty('easy')">简单 ⭐</button>
-    <button class="control-btn" data-diff="hard" onclick="setDifficulty('hard')">困难 ⭐⭐</button>
+    <button class="control-btn" data-diff="medium" onclick="setDifficulty('medium')">中等 ⭐⭐</button>
+    <button class="control-btn" data-diff="hard" onclick="setDifficulty('hard')">困难 ⭐⭐⭐</button>
+    <button class="control-btn" data-diff="nightmare" onclick="setDifficulty('nightmare')">噩梦 💀</button>
+  </div>
+
+  <div class="game-status-row">
+    <div class="timer-section" id="timerSection">
+      <div class="timer-bar">
+        <div class="timer-fill" id="timerFill"></div>
+      </div>
+      <span class="timer-text" id="timerText">30s</span>
+    </div>
+    <div class="lives-section" id="livesSection">
+      <span class="life-heart">❤️</span>
+      <span class="life-heart">❤️</span>
+      <span class="life-heart">❤️</span>
+    </div>
   </div>
 
   <div class="spinner-section">
@@ -809,6 +946,16 @@ body {
   </div>
 </div>
 
+<!-- Game over overlay -->
+<div class="game-over" id="gameOver">
+  <div class="game-over-content">
+    <div class="game-over-emoji">😢</div>
+    <div class="game-over-text" id="gameOverText">时间到！</div>
+    <div class="game-over-sub" id="gameOverSub">再试一次吧！</div>
+    <button class="retry-btn" onclick="retryRound()">再来一次 🔄</button>
+  </div>
+</div>
+
 <!-- Drag preview -->
 <div class="drag-preview" id="dragPreview"></div>
 
@@ -818,7 +965,7 @@ body {
 <script>
 // ====== GAME STATE ======
 let mode = 'desc'; // desc = 大到小, asc = 小到大
-let difficulty = 'easy'; // easy = only answer numbers, hard = 1-9
+let difficulty = 'easy'; // easy, medium, hard, nightmare
 let firstNumber = null;
 let firstPosition = 0; // 起始数字的位置 (0-5)
 let isSpinning = false;
@@ -829,12 +976,27 @@ let currentSlotIndex = 0;
 let musicPlaying = false;
 let audioCtx = null;
 
+// 新增：难度相关状态
+let timeLeft = 30;
+let timerInterval = null;
+let lives = 3;
+let gameActive = false;
+
+// 难度配置
+const DIFFICULTY_CONFIG = {
+  easy: { showAllNumbers: false, hasTimer: false, hasLives: false, memoryMode: false, timeLimit: 0 },
+  medium: { showAllNumbers: true, hasTimer: false, hasLives: false, memoryMode: false, timeLimit: 0 },
+  hard: { showAllNumbers: true, hasTimer: true, hasLives: false, memoryMode: false, timeLimit: 30 },
+  nightmare: { showAllNumbers: true, hasTimer: true, hasLives: true, memoryMode: true, timeLimit: 25 }
+};
+
 // ====== INITIALIZATION ======
 function init() {
   buildCarousel();
   buildSpinner();
   updateDirection();
   buildSlots();
+  updateDifficultyUI();
   updateFeedback('点击 🎰 按钮开始游戏！', '🎮');
 }
 
@@ -849,7 +1011,30 @@ function setMode(m) {
 function setDifficulty(d) {
   difficulty = d;
   document.querySelectorAll('[data-diff]').forEach(b => b.classList.toggle('active', b.dataset.diff === d));
-  if (firstNumber !== null) buildCandidates();
+  updateDifficultyUI();
+  resetRound();
+}
+
+function updateDifficultyUI() {
+  const config = DIFFICULTY_CONFIG[difficulty];
+  const timerSection = document.getElementById('timerSection');
+  const livesSection = document.getElementById('livesSection');
+  
+  timerSection.classList.toggle('active', config.hasTimer);
+  livesSection.classList.toggle('active', config.hasLives);
+  
+  // 重置显示
+  document.getElementById('timerFill').style.width = '100%';
+  document.getElementById('timerFill').className = 'timer-fill';
+  document.getElementById('timerText').textContent = (config.timeLimit || 30) + 's';
+  updateLivesDisplay(3);
+}
+
+function updateLivesDisplay(count) {
+  const hearts = document.querySelectorAll('.life-heart');
+  hearts.forEach((h, i) => {
+    h.classList.toggle('lost', i >= count);
+  });
 }
 
 function updateDirection() {
@@ -890,6 +1075,8 @@ function buildSpinner() {
 function startSpin() {
   if (isSpinning) return;
   isSpinning = true;
+  gameActive = false;
+  stopTimer();
   
   const btn = document.getElementById('spinBtn');
   btn.classList.add('spinning');
@@ -897,6 +1084,10 @@ function startSpin() {
   // Reset previous round
   filledSlots = [null, null, null, null, null, null];
   currentSlotIndex = 0;
+  lives = 3;
+  const config = DIFFICULTY_CONFIG[difficulty];
+  timeLeft = config.timeLimit;
+  updateLivesDisplay(3);
   
   playSound('spin');
   updateFeedback('转动中...', '🎰');
@@ -967,9 +1158,111 @@ function startSpin() {
       
       buildSlots();
       buildCandidates();
+      
+      gameActive = true;
+      
+      // 开始计时器（如果需要）
+      if (config.hasTimer) {
+        startTimer();
+      }
+      
+      // 记忆模式
+      if (config.memoryMode) {
+        startMemoryMode();
+      }
     }
   }
   requestAnimationFrame(animateSpin);
+}
+
+// ====== TIMER ======
+function startTimer() {
+  const config = DIFFICULTY_CONFIG[difficulty];
+  timeLeft = config.timeLimit;
+  updateTimerDisplay();
+  
+  timerInterval = setInterval(() => {
+    if (!gameActive) return;
+    
+    timeLeft -= 0.1;
+    updateTimerDisplay();
+    
+    if (timeLeft <= 0) {
+      stopTimer();
+      gameOver('time');
+    }
+  }, 100);
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+function updateTimerDisplay() {
+  const config = DIFFICULTY_CONFIG[difficulty];
+  const fill = document.getElementById('timerFill');
+  const text = document.getElementById('timerText');
+  
+  const percent = (timeLeft / config.timeLimit) * 100;
+  fill.style.width = percent + '%';
+  text.textContent = Math.ceil(timeLeft) + 's';
+  
+  fill.classList.remove('warning', 'danger');
+  if (percent <= 20) {
+    fill.classList.add('danger');
+  } else if (percent <= 50) {
+    fill.classList.add('warning');
+  }
+}
+
+// ====== MEMORY MODE ======
+function startMemoryMode() {
+  updateFeedback('🧠 记住数字的位置！3秒后隐藏...', '👀');
+  
+  setTimeout(() => {
+    if (!gameActive) return;
+    document.querySelectorAll('.candidate:not(.used)').forEach(c => {
+      c.classList.add('hidden-memory');
+    });
+    updateFeedback(`请${mode === 'desc' ? '从大到小' : '从小到大'}排列！`, '🎯');
+  }, 3000);
+}
+
+function revealCandidate(el) {
+  el.classList.remove('hidden-memory');
+}
+
+// ====== GAME OVER ======
+function gameOver(reason) {
+  gameActive = false;
+  stopTimer();
+  
+  const overlay = document.getElementById('gameOver');
+  const text = document.getElementById('gameOverText');
+  const sub = document.getElementById('gameOverSub');
+  
+  if (reason === 'time') {
+    text.textContent = '⏰ 时间到！';
+    sub.textContent = '下次要更快哦！';
+    playSound('wrong');
+  } else if (reason === 'lives') {
+    text.textContent = '💔 机会用完了！';
+    sub.textContent = '再仔细想想吧！';
+    playSound('wrong');
+  }
+  
+  streak = 0;
+  document.getElementById('streak').textContent = streak;
+  
+  overlay.classList.add('show');
+}
+
+function retryRound() {
+  document.getElementById('gameOver').classList.remove('show');
+  resetRound();
 }
 
 // ====== SLOTS ======
@@ -1033,7 +1326,8 @@ function buildCandidates() {
   }
   
   let candidates;
-  if (difficulty === 'easy') {
+  const config = DIFFICULTY_CONFIG[difficulty];
+  if (!config.showAllNumbers) {
     // Only show the 5 correct answers, shuffled
     candidates = [...correctAnswers];
   } else {
@@ -1078,9 +1372,11 @@ let draggedValue = null;
 let draggedEl = null;
 
 function handleDragStart(e) {
+  if (!gameActive) return;
   draggedValue = parseInt(e.target.dataset.value);
   draggedEl = e.target;
   e.target.classList.add('dragging');
+  if (DIFFICULTY_CONFIG[difficulty].memoryMode) revealCandidate(e.target);
   e.dataTransfer.effectAllowed = 'move';
 }
 
@@ -1107,6 +1403,7 @@ function handleDragLeave(e) {
 
 function handleDrop(e) {
   e.preventDefault();
+  if (!gameActive) return;
   const slot = e.target.closest('.slot');
   if (!slot) return;
   slot.classList.remove('drop-target');
@@ -1125,6 +1422,7 @@ let touchStartX = 0;
 let touchStartY = 0;
 
 function handleTouchStart(e) {
+  if (!gameActive) return;
   e.preventDefault();
   const el = e.target.closest('.candidate');
   if (!el || el.classList.contains('used')) return;
@@ -1132,6 +1430,7 @@ function handleTouchStart(e) {
   touchDragEl = el;
   touchDragValue = parseInt(el.dataset.value);
   el.classList.add('dragging');
+  if (DIFFICULTY_CONFIG[difficulty].memoryMode) revealCandidate(el);
   
   const touch = e.touches[0];
   touchStartX = touch.clientX;
@@ -1187,7 +1486,7 @@ function handleTouchEnd(e) {
   if (dx < 10 && dy < 10) {
     // It's a tap - 点击按顺序填空
     handleCandidateClick(touchDragEl);
-  } else {
+  } else if (gameActive) {
     // 拖动可以放到任意空槽位
     if (targetEl) {
       const slot = targetEl.closest('.slot');
@@ -1206,7 +1505,8 @@ function handleTouchEnd(e) {
 
 // ====== CLICK TO PLACE ======
 function handleCandidateClick(el) {
-  if (el.classList.contains('used')) return;
+  if (!gameActive || el.classList.contains('used')) return;
+  if (DIFFICULTY_CONFIG[difficulty].memoryMode) revealCandidate(el);
   const value = parseInt(el.dataset.value);
   placeNumber(value, el);
 }
@@ -1214,6 +1514,7 @@ function handleCandidateClick(el) {
 // ====== PLACE NUMBER LOGIC ======
 // 点击答题：按顺序填空
 function placeNumber(value, candidateEl) {
+  if (!gameActive) return;
   if (firstNumber === null) return;
   
   // Find next empty slot (按顺序)
@@ -1228,6 +1529,7 @@ function placeNumber(value, candidateEl) {
 
 // 拖动答题：放到指定槽位
 function placeNumberAtSlot(value, candidateEl, targetSlot) {
+  if (!gameActive) return;
   if (firstNumber === null) return;
   if (targetSlot < 0 || targetSlot >= 6) return;
   if (filledSlots[targetSlot] !== null) return;
@@ -1263,7 +1565,18 @@ function placeNumberAtSlot(value, candidateEl, targetSlot) {
     // Check if all filled
     if (filledSlots.every(v => v !== null)) {
       // Win!
-      score += 10 + streak * 2;
+      stopTimer();
+      let baseScore = 10 + streak * 2;
+      // Time bonus for timer modes
+      const config = DIFFICULTY_CONFIG[difficulty];
+      if (config.hasTimer && timeLeft > 0) {
+        baseScore += Math.floor(timeLeft / 2); // 剩余时间奖励
+      }
+      // Lives bonus for nightmare mode
+      if (config.hasLives && lives > 0) {
+        baseScore += lives * 3; // 剩余生命奖励
+      }
+      score += baseScore;
       streak++;
       document.getElementById('score').textContent = score;
       document.getElementById('streak').textContent = streak;
@@ -1282,7 +1595,20 @@ function placeNumberAtSlot(value, candidateEl, targetSlot) {
     streak = 0;
     document.getElementById('streak').textContent = streak;
     playSound('wrong');
-    updateFeedback(`❌ 不对哦，再想想！`, '🤔');
+    
+    // Handle lives in nightmare mode
+    const config = DIFFICULTY_CONFIG[difficulty];
+    if (config.hasLives) {
+      lives--;
+      updateLivesDisplay();
+      if (lives <= 0) {
+        gameOver('lives');
+        return;
+      }
+      updateFeedback(`❌ 错了！还剩 ${lives} 条命！`, '💔');
+    } else {
+      updateFeedback(`❌ 不对哦，再想想！`, '🤔');
+    }
   }
 }
 
